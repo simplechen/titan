@@ -10,6 +10,7 @@ import (
 	"github.com/distributedio/titan/db/store"
 	"github.com/pingcap/kvproto/pkg/kvrpcpb"
 	"github.com/pingcap/kvproto/pkg/metapb"
+	sdk_kv "github.com/pingcap/tidb/kv"
 	"github.com/pingcap/tidb/store/tikv"
 	"github.com/pingcap/tidb/store/tikv/tikvrpc"
 	"go.uber.org/zap"
@@ -29,7 +30,8 @@ func GetKv(txn *Transaction) *Kv {
 func (kv *Kv) Keys(start []byte, f func(key []byte) bool) error {
 	mkey := MetaKey(kv.txn.db, start)
 	prefix := MetaKey(kv.txn.db, nil)
-	iter, err := kv.txn.t.Iter(mkey, nil)
+	endPrefix := sdk_kv.Key(prefix).PrefixNext()
+	iter, err := kv.txn.t.Iter(mkey, endPrefix)
 	if err != nil {
 		return err
 	}
